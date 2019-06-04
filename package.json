@@ -1,8 +1,11 @@
 {
   "name": "proton-bundler",
   "version": "1.0.0",
-  "description": "",
+  "description": "CLI tools to bundle Proton web clients for deploys",
   "main": "index.js",
+  "bin": {
+    "proton-i18n": "index.js"
+  },
   "scripts": {
     "lint": "eslint {lib,index.js,config.js} --ext .js --quiet --cache",
     "pretty": "prettier --write  $(find lib/ index.js -type f -name '*.js')",

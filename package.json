@@ -4,7 +4,7 @@
   "description": "CLI tools to bundle Proton web clients for deploys",
   "main": "index.js",
   "bin": {
-    "proton-i18n": "index.js"
+    "proton-bundler": "index.js"
   },
   "scripts": {
     "lint": "eslint {lib,index.js,config.js} --ext .js --quiet --cache",

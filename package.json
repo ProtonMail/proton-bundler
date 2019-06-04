@@ -1,0 +1,56 @@
+{
+  "name": "proton-bundler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint {lib,index.js,config.js} --ext .js --quiet --cache",
+    "pretty": "prettier --write  $(find lib/ index.js -type f -name '*.js')",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preversion": "git update-index --no-assume-unchanged package-lock.json",
+    "postversion": "git update-index --assume-unchanged package-lock.json && git push --tags && git push"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ProtonMail/proton-bundler.git"
+  },
+  "keywords": [],
+  "author": "",
+  "bugs": {
+    "url": "https://github.com/ProtonMail/proton-bundler/issues"
+  },
+  "homepage": "https://github.com/ProtonMail/proton-bundler#readme",
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "del": "^4.1.1",
+    "execa": "^1.0.0",
+    "listr": "^0.14.3",
+    "listr-update-renderer": "^0.5.0",
+    "moment": "^2.24.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.12.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-react-app": "^4.0.1",
+    "eslint-plugin-flowtype": "^3.9.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-jsx-a11y": "^6.1.2",
+    "eslint-plugin-react": "^7.13.0",
+    "eslint-plugin-react-hooks": "^1.0.2",
+    "husky": "^2.3.0",
+    "lint-staged": "^8.1.7"
+  }
+}

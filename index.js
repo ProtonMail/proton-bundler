@@ -10,21 +10,35 @@ const argv = require('minimist')(process.argv.slice(2));
 
 const { debug, success, error, about } = require('./lib/helpers/log')('proton-bundler');
 const { bash, script } = require('./lib/helpers/cli');
-const customDeploy = require('./lib/custom');
+const {
+    customBundler: { tasks: customTasks, config: customConfig },
+    getCustomHooks
+} = require('./lib/custom');
 const { pull, push, getConfig, logCommits } = require('./lib/git');
 
 const getTasks = (branch, { isCI, flowType = 'single', forceI18n, appMode }) => {
-    const { EXTERNAL_FILES, hookPreTasks, hookPostTasks, hookPostTaskClone, hookPostTaskBuild } = customDeploy(
-        {
-            EXTERNAL_FILES: ['.htaccess'],
+    const { EXTERNAL_FILES = ['.htaccess'] } = customConfig;
+    const { hookPreTasks, hookPostTasks, hookPostTaskClone, hookPostTaskBuild, customConfigSetup } = getCustomHooks(
+        customTasks({
             branch,
             isCI,
             flowType,
             appMode,
             forceI18n
-        },
-        argv
+        })
     );
+
+    const configTasks = customConfigSetup.length
+        ? customConfigSetup
+        : [
+              {
+                  title: 'Setup app config',
+                  enabled: () => !isCI,
+                  task() {
+                      return bash('npx proton-pack', process.argv.slice(2));
+                  }
+              }
+          ];
 
     const list = [
         ...hookPreTasks,
@@ -46,13 +60,7 @@ const getTasks = (branch, { isCI, flowType = 'single', forceI18n, appMode }) => 
             title: 'Lint sources',
             task: () => execa('npm', ['run', 'lint'])
         },
-        {
-            title: 'Setup app config',
-            enabled: () => !isCI,
-            task() {
-                return bash('npx proton-pack', process.argv.slice(2));
-            }
-        },
+        ...configTasks,
         {
             title: 'Extract git env for the bundle',
             enabled: () => !isCI,
@@ -113,6 +121,10 @@ const getTasks = (branch, { isCI, flowType = 'single', forceI18n, appMode }) => 
 };
 
 async function getAPIUrl() {
+    if (customConfig.apiUrl) {
+        return customConfig.apiUrl;
+    }
+
     const args = process.argv.slice(2);
     const { stdout } = await bash('npx proton-pack print-config', args);
     debug(stdout);
@@ -129,6 +141,7 @@ async function main() {
     const appMode = argv.appMode || 'bundle';
 
     debug(argv);
+    debug(customConfig);
 
     if (!branch && !isCI) {
         throw new Error('You must define a branch name. --branch=XXX');

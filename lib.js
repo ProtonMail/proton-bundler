@@ -1,2 +1,4 @@
 const { pull, push } = require('./lib/git');
-module.exports = { pull, push };
+const { bash } = require('./lib/helpers/cli');
+
+module.exports = { pull, push, bash };

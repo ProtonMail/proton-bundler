@@ -10,6 +10,7 @@ const argv = require('minimist')(process.argv.slice(2));
 
 const { debug, success, error, about } = require('./lib/helpers/log')('proton-bundler');
 const { bash, script } = require('./lib/helpers/cli');
+
 const {
     customBundler: { tasks: customTasks, config: customConfig },
     getCustomHooks
@@ -96,10 +97,10 @@ const getTasks = (branch, { isCI, flowType = 'single', forceI18n, appMode }) => 
             task() {
                 const args = process.argv.slice(2);
                 if (appMode === 'standalone') {
-                    return execa('npm', ['run', 'build:standalone', ...args]);
+                    return execa('npm', ['run', 'build:standalone', '--', ...args]);
                 }
 
-                return execa('npm', ['run', 'build', ...args]);
+                return execa('npm', ['run', 'build', '--', ...args]);
             }
         },
         ...hookPostTaskBuild,
@@ -120,6 +121,11 @@ const getTasks = (branch, { isCI, flowType = 'single', forceI18n, appMode }) => 
     return list;
 };
 
+/**
+ * Get the API dest when we deploy.
+ * You can use the custom config from proton.bundler.js to get it
+ * @return {Promise<String>}
+ */
 async function getAPIUrl() {
     if (customConfig.apiUrl) {
         return customConfig.apiUrl;
@@ -140,8 +146,7 @@ async function main() {
     const forceI18n = argv.i18n || false;
     const appMode = argv.appMode || 'bundle';
 
-    debug(argv);
-    debug(customConfig);
+    debug({ customConfig, argv });
 
     if (!branch && !isCI) {
         throw new Error('You must define a branch name. --branch=XXX');
@@ -160,7 +165,8 @@ async function main() {
     });
 
     const start = moment(Date.now());
-    const tasks = new Listr(getTasks(branch, { isCI, flowType, forceI18n, appMode }), {
+    const listTasks = getTasks(branch, { isCI, flowType, forceI18n, appMode });
+    const tasks = new Listr(listTasks, {
         renderer: UpdaterRenderer,
         collapse: false
     });
@@ -178,6 +184,10 @@ async function main() {
     if (!isCI) {
         return logCommits(branch, flowType);
     }
+}
+
+if (argv._.includes('hosts')) {
+    return script('createNewDeployBranch.sh', process.argv.slice(3)).then(({ stdout }) => console.log(stdout));
 }
 
 main().catch(error);

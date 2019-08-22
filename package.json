@@ -31,7 +31,8 @@
     "listr": "^0.14.3",
     "listr-update-renderer": "^0.5.0",
     "minimist": "^1.2.0",
-    "moment": "^2.24.0"
+    "moment": "^2.24.0",
+    "ora": "^3.4.0"
   },
   "husky": {
     "hooks": {

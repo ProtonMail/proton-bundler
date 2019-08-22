@@ -149,14 +149,17 @@ async function getAPIUrl() {
 }
 
 async function main() {
+    /*
+        If we build from the remote repository we need to:
+            - clone the repository inside /tmp
+            - install dependencies
+            - run the deploy command again from this directory
+        So let's put an end to the current deploy.
+     */
     if (argv.remote) {
         await buildRemote(PKG);
         const args = process.argv.slice(2).filter((key) => !/--remote/.test(key));
-        const run = script('builder.sh', [PKG.name, ...args]);
-
-        run.stdout.pipe(process.stdout);
-        run.stderr.pipe(process.stderr);
-        return;
+        return script('builder.sh', [PKG.name, ...args], 'inherit'); // inherit for the colors ;)
     }
 
     // Custom local deploy for the CI

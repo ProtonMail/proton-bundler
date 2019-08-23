@@ -8,7 +8,7 @@
   },
   "module": "lib.js",
   "scripts": {
-    "lint": "eslint {lib,index.js,config.js} --ext .js --quiet --cache",
+    "lint": "eslint lib index.js --ext .js --quiet --cache",
     "pretty": "prettier --write  $(find lib/ index.js -type f -name '*.js')",
     "test": "echo \"Error: no test specified\" && exit 1",
     "preversion": "git update-index --no-assume-unchanged package-lock.json",

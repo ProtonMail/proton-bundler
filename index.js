@@ -257,6 +257,11 @@ if (argv._.includes('log-commits')) {
 if (argv._.includes('changelog')) {
     const { branch } = argv;
     debug({ argv, url: PKG.bugs.url }, 'arguments');
+
+    if (!['dev', process.env.QA_BRANCH].includes(branch)) {
+        return; // not available
+    }
+
     return generateChangelog(branch, PKG.bugs.url).then((data) => {
         if (data) {
             coucou.send(data, { env: branch, mode: 'changelog' }, PKG);

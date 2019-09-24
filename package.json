@@ -1,6 +1,6 @@
 {
   "name": "proton-bundler",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "CLI tools to bundle Proton web clients for deploys",
   "main": "lib.js",
   "bin": {

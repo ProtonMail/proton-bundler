@@ -2,8 +2,14 @@
 set -eo pipefail
 
 function getVersion {
+
+    if [ -n "$1" ]; then
+        echo "$1";
+        return 0;
+    fi;
+
     local version=$(cat package.json | awk 'match($0, /"version": "([0-9]+\.[0-9]+\.[0-9]+)"/, arr) { print arr[1]; }');
-    [ "$1" ] && echo "$1" || echo "$version";
+    echo "$version";
 }
 
 function getCommit {

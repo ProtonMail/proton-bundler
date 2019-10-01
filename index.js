@@ -145,9 +145,9 @@ const getTasks = (branch, { isCI, flowType = 'single', forceI18n, appMode, runI1
         {
             title: 'Generate the version info',
             task(ctx) {
-                const { tag, commit } = ctx.config;
+                const { tag = `v${PKG.version}`, commit } = ctx.config;
                 const fileName = path.join('dist', 'assets/version.json');
-                return bash('tasks/createVersionJSON.sh', [commit, tag, fileName]);
+                return script('createVersionJSON.sh', [commit, tag, fileName]);
             }
         },
         ...hookPostTasks,

@@ -27,6 +27,16 @@ if [ -z "$3" ]; then
     mkdir -p build/assets;
 fi;
 
+printf '%-20s' "[commit]";
+printf '%-20s' "$1";
+echo
+printf '%-20s' "[tag]";
+printf '%-20s' "$2";
+echo
+printf '%-20s' "[output]";
+printf '%-20s' "${3-build/assets/version.json}";
+echo
+
 ##
 #  Write JSON version inside assets
 #  -1: commit hash

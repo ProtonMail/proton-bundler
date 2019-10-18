@@ -289,7 +289,7 @@ if (argv._.includes('log-commits')) {
 }
 
 if (argv._.includes('changelog')) {
-    const { branch } = argv;
+    const { branch, api } = argv;
     const url = argv.url || (PKG.bugs || {}).url;
     debug({ argv }, 'arguments');
 
@@ -303,7 +303,7 @@ if (argv._.includes('changelog')) {
 
     return generateChangelog(branch, url).then((data) => {
         if (data) {
-            coucou.send(data, { env: branch, mode: 'changelog' }, PKG);
+            coucou.send(data, { env: branch, mode: 'changelog', api }, PKG);
         }
     });
 }

@@ -60,7 +60,7 @@ function toJSON {
 }
 
 
-if [ -d "$OUTPUT_DIR" ]; then
+if ! [ -d "$OUTPUT_DIR" ]; then
     mkdir -p "$OUTPUT_DIR";
 fi;
 

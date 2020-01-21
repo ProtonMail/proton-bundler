@@ -63,7 +63,6 @@ const getTasks = (branch, { isCI, flowType = 'single', forceI18n, appMode, runI1
         : [
               {
                   title: 'Setup app config',
-                  enabled: () => !isCI,
                   task() {
                       return bash('npx proton-pack', process.argv.slice(2));
                   }

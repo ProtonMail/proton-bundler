@@ -177,7 +177,8 @@ const getTasks = (branch, { isCI, flowType = 'single', forceI18n, appMode, runI1
                     `--tag ${version}`,
                     `--commit ${originCommit}`,
                     `--branch ${originBranch}`,
-                    `--output ${fileName}`
+                    `--output ${fileName}`,
+                    '--debug'
                 ];
 
                 return script('createVersionJSON.sh', args);

@@ -52,12 +52,13 @@ function getBranch {
 }
 
 function toJSON {
-    local tpl='{ "version": "#version", "commit": "#commit", "branch": "#branch", "date": "#date" }';
+    local tpl='{ "version": "#version", "commit": "#commit", "branch": "#branch", "buildDate": "#date", "release": "#release" }';
     local commit=$(getCommit);
     local version=$(getVersion);
     local branch=$(getBranch);
-    local date="$(date '+%s')";
-    echo "$tpl" | sed "s/#commit/$commit/; s/#version/$version/; s|#branch|$branch|; s|#date|$date|;"
+    local date="$(date '+%FT%T%Z')";
+    local release="$(git describe --long --dirty --all)";
+    echo "$tpl" | sed "s/#commit/$commit/; s/#version/$version/; s|#branch|$branch|; s|#date|$date|; s|#release|$release|;"
 }
 
 

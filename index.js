@@ -37,6 +37,13 @@ const { script } = require('./lib/helpers/cli');
 
 const PKG = require(path.join(process.cwd(), 'package.json'));
 
+const successMessage = (time, { isOnlyDeployGit, isDeployGit }) => {
+    if (isOnlyDeployGit || isDeployGit) {
+        return success(`App deployment done -> ${chalk.bold('dist')}`, { time, space: true });
+    }
+    return success(`Bundle done, available -> ${chalk.bold('dist')}`, { time, space: true });
+};
+
 async function main() {
     /*
         If we build from the remote repository we need to:
@@ -57,17 +64,16 @@ async function main() {
         collapse: false
     });
 
-    const { isCI, branch } = config;
+    const { isDeployGit, isOnlyDeployGit, branch } = config;
     await tasks.run();
 
     const now = moment(Date.now());
     const total = now.diff(start, 'seconds');
     const time = total > 60 ? moment.utc(total * 1000).format('mm:ss') : `${total}s`;
 
-    !isCI && success('App deployment done', { time, space: true });
-    isCI && success(`Build CI app to the directory: ${chalk.bold('dist')}`, { time, space: true });
+    successMessage(time, config);
 
-    if (!isCI && !argv.silentMessage) {
+    if ((isDeployGit || isOnlyDeployGit) && !argv.silentMessage) {
         return askDeploy(branch, PKG, argv);
     }
 }

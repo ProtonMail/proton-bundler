@@ -99,7 +99,6 @@ deployConfig:
 
 - `branch: <String>` ~ branch's name
 - `appMode: <String>` ~ Type of app we build, standalone or bundle (default)
-- `isCI: <Boolean>`
 - `flowType: <String>` ~ Type of deploy ('single', or 'many')
 - `forceI18n: <Boolean>` ~ Force run the i18n task
 - `runI18n: <Boolean>` ~ Should we run the i18n tasks ?

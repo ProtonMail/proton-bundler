@@ -8,16 +8,16 @@ const UpdaterRenderer = require('listr-update-renderer');
 const moment = require('moment');
 const argv = require('minimist')(process.argv.slice(2), {
     string: ['appMode'],
-    boolean: ['lint', 'i18n'],
+    boolean: ['lint', 'git', 'only-git'],
     default: {
         website: false,
+        git: false,
         lint: true,
         fromCi: false,
-        i18n: true,
-        localize: false,
         appMode: 'bundle',
         remote: false,
         forceFetch: false,
+        'only-git': false,
         silentMessage: false,
         'default-branch': 'master'
     }

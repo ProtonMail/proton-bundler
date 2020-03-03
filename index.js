@@ -33,6 +33,7 @@ const { get: getConfig } = require('./lib/config');
 const getTasks = require('./lib/tasks/index');
 const remoteBuildProcesss = require('./lib/tasks/remote');
 const changelogProcess = require('./lib/tasks/changelog');
+const flavorProcess = require('./lib/tasks/flavor');
 const { script } = require('./lib/helpers/cli');
 
 const PKG = require(path.join(process.cwd(), 'package.json'));
@@ -80,6 +81,10 @@ async function main() {
 
 if (argv._.includes('hosts')) {
     return script('createNewDeployBranch.sh', process.argv.slice(3)).then(({ stdout }) => console.log(stdout));
+}
+
+if (argv._.includes('flavor')) {
+    return flavorProcess();
 }
 
 if (argv._.includes('log-commits')) {

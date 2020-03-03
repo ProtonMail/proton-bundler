@@ -15,6 +15,11 @@ function bindHTMLSRI {
     local oldHashJS="$(sriGenerator "$oldIndexJS")";
     local newHashJS="$(sriGenerator "$newIndexJS")";
 
+    echo "[oldIndexJS]: $oldIndexJS"
+    echo "[newIndexJS]: $newIndexJS"
+    echo "[oldHashJS]: $oldHashJS"
+    echo "[newHashJS]: $newHashJS"
+
     echo $HTML | sed "s|sha384-$oldHashJS|sha384-$newHashJS|g;" > 'dist/index.html';
 }
 

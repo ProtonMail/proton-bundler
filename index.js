@@ -79,29 +79,34 @@ async function main() {
     }
 }
 
-if (argv._.includes('hosts')) {
-    return script('createNewDeployBranch.sh', process.argv.slice(3)).then(({ stdout }) => console.log(stdout));
-}
+/*
+    To catch unhandledPromiseRejection
+ */
+(async () => {
+    if (argv._.includes('hosts')) {
+        return script('createNewDeployBranch.sh', process.argv.slice(3)).then(({ stdout }) => console.log(stdout));
+    }
 
-if (argv._.includes('flavor')) {
-    return flavorProcess();
-}
+    if (argv._.includes('flavor')) {
+        return flavorProcess(argv);
+    }
 
-if (argv._.includes('log-commits')) {
-    const parseEnv = ({ branch, website }) => {
-        if (website && /deploy-(a|b)$/.test(branch)) {
-            return 'deploy-prod';
-        }
-        return branch;
-    };
+    if (argv._.includes('log-commits')) {
+        const parseEnv = ({ branch, website }) => {
+            if (website && /deploy-(a|b)$/.test(branch)) {
+                return 'deploy-prod';
+            }
+            return branch;
+        };
 
-    debug(argv, 'arguments');
-    const branchName = parseEnv(argv);
-    return askDeploy(branchName, PKG, argv);
-}
+        debug(argv, 'arguments');
+        const branchName = parseEnv(argv);
+        return askDeploy(branchName, PKG, argv);
+    }
 
-if (argv._.includes('changelog')) {
-    return changelogProcess(argv, PKG);
-}
+    if (argv._.includes('changelog')) {
+        return changelogProcess(argv, PKG);
+    }
 
-main().catch(error);
+    main().catch(error);
+})().catch(error);

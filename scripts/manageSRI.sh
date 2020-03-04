@@ -58,7 +58,7 @@ VALIDATE_ERRORS=();
 function validateConfigFile {
     local envRaw=$(echo "$1" | awk -F "-" '{print $1}');
     local env=$([ "$envRaw" == 'tor' ] && echo "prod" || echo "$envRaw");
-    local sentryConfig="$(cat env/env.json | xargs -0 node -e "console.log(JSON.parse(process.argv[1]).$env.sentry)")";
+    local sentryConfig="$(jq ".$env.sentry" appConfig.json)";
 
     # Only one with specific A/B config -- obsolete
     if [[ "$1" = "prod-b" ]]; then
@@ -88,8 +88,7 @@ function validate {
     local files=$(find dist -type f -name '*.chunk.js' ! -name 'vendor*' ! -name 'app*');
     local newIndex="$(find dist -type f -name 'index.*.js')";
 
-    for file in $files
-    do
+    for file in $files; do
         local hash="$(sriGenerator "$file")";
         if ! grep -q "$hash" "$newIndex"; then
             VALIDATE_ERRORS+=("[$1] Wrong SRI inside $newIndex for $file");
@@ -105,7 +104,7 @@ function validate {
 
     # Log errors and break
     if [ -n "$VALIDATE_ERRORS" ]; then
-        for item in "${VALIDATE_ERRORS[@]}" ; do
+        for item in "${VALIDATE_ERRORS[@]}"; do
             echo  "    ➙ $item"
         done
         exit 1;

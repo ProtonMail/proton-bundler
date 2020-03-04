@@ -48,6 +48,15 @@ function getSRIFiles {
     done;
 }
 
+function getSentryConfig {
+    if [ -s 'appConfig.json' ]; then
+        jq ".$env.sentry" appConfig.json;
+        return 0;
+    fi;
+
+    jq ".$env.sentry" env/env.json
+}
+
 VALIDATE_ERRORS=();
 
 # Validate the config for a build
@@ -58,7 +67,7 @@ VALIDATE_ERRORS=();
 function validateConfigFile {
     local envRaw=$(echo "$1" | awk -F "-" '{print $1}');
     local env=$([ "$envRaw" == 'tor' ] && echo "prod" || echo "$envRaw");
-    local sentryConfig="$(jq ".$env.sentry" appConfig.json)";
+    local sentryConfig="$(getSentryConfig)";
 
     # Only one with specific A/B config -- obsolete
     if [[ "$1" = "prod-b" ]]; then

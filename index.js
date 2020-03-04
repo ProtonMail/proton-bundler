@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const path = require('path');
 const Listr = require('listr');
 const chalk = require('chalk');
 const UpdaterRenderer = require('listr-update-renderer');
@@ -36,8 +35,6 @@ const changelogProcess = require('./lib/tasks/changelog');
 const flavorProcess = require('./lib/tasks/flavor');
 const { script } = require('./lib/helpers/cli');
 
-const PKG = require(path.join(process.cwd(), 'package.json'));
-
 const successMessage = (time, { isOnlyDeployGit, isDeployGit }) => {
     if (isOnlyDeployGit || isDeployGit) {
         return success(`App deployment done -> ${chalk.bold('dist')}`, { time, space: true });
@@ -54,12 +51,12 @@ async function main() {
         So let's put an end to the current deploy.
      */
     if (argv.remote) {
-        return remoteBuildProcesss(PKG);
+        return remoteBuildProcesss();
     }
 
     const config = await getConfig(argv);
     const start = moment(Date.now());
-    const listTasks = getTasks({ config, PKG, argv });
+    const listTasks = getTasks({ config, argv });
     const tasks = new Listr(listTasks, {
         renderer: UpdaterRenderer,
         collapse: false
@@ -75,7 +72,7 @@ async function main() {
     successMessage(time, config);
 
     if ((isDeployGit || isOnlyDeployGit) && !argv.silentMessage) {
-        return askDeploy(branch, PKG, argv);
+        return askDeploy(branch, argv);
     }
 }
 
@@ -101,11 +98,11 @@ async function main() {
 
         debug(argv, 'arguments');
         const branchName = parseEnv(argv);
-        return askDeploy(branchName, PKG, argv);
+        return askDeploy(branchName, argv);
     }
 
     if (argv._.includes('changelog')) {
-        return changelogProcess(argv, PKG);
+        return changelogProcess(argv);
     }
 
     main().catch(error);

@@ -10,8 +10,8 @@ function sriGenerator {
 function bindHTMLSRI {
     local HTML="$(cat dist/index.html)";
 
-    local oldIndexJS="$(find distProd -type f -name 'index.*.js')";
-    local newIndexJS="$(find dist -type f -name 'index.*.js')";
+    local oldIndexJS="$(find distProd -maxdepth 1 -type f -name 'index.*.js')";
+    local newIndexJS="$(find dist -maxdepth 1 -type f -name 'index.*.js')";
     local oldHashJS="$(sriGenerator "$oldIndexJS")";
     local newHashJS="$(sriGenerator "$newIndexJS")";
 
@@ -26,8 +26,8 @@ function bindHTMLSRI {
 # Update hashes for ref files inside the index.js
 # @param {String} Sed config replace
 function bindIndexSRI {
-    local index="$(find distCurrent -type f -name 'index.*.js')";
-    local newIndex="$(find dist -type f -name 'index.*.js')";
+    local index="$(find distCurrent -maxdepth 1 -type f -name 'index.*.js')";
+    local newIndex="$(find dist -maxdepth 1 -type f -name 'index.*.js')";
     cat "$index" | sed "$1" > "$newIndex";
 }
 
@@ -35,9 +35,9 @@ function bindIndexSRI {
 # @param {String} type of files (distProd for prod files, '' for new files)
 function listFiles {
     if [[ "$1" = "distProd" ]]; then
-        find distProd -type f -name '*.chunk.js' ! -name 'vendor*' ! -name 'app*'
+        find distProd -maxdepth 1 -type f -name '*.chunk.js' ! -name 'vendor*' ! -name 'app*'
     else
-        find dist -type f -name '*.chunk.js' ! -name 'vendor*' ! -name 'app*'
+        find dist -maxdepth 1 -type f -name '*.chunk.js' ! -name 'vendor*' ! -name 'app*'
     fi
 }
 
@@ -94,8 +94,8 @@ function validateConfigFile {
 #   - Check if the config is valid
 #   - Check if index.html contains the right SRI for index.js
 function validate {
-    local files=$(find dist -type f -name '*.chunk.js' ! -name 'vendor*' ! -name 'app*');
-    local newIndex="$(find dist -type f -name 'index.*.js')";
+    local files=$(find dist -maxdepth 1 -type f -name '*.chunk.js' ! -name 'vendor*' ! -name 'app*');
+    local newIndex="$(find dist -maxdepth 1 -type f -name 'index.*.js')";
 
     for file in $files; do
         local hash="$(sriGenerator "$file")";

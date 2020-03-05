@@ -120,6 +120,25 @@ function validate {
     fi;
 }
 
+function writeEnv {
+
+    local newVersion='';
+    local newEnv="$(grep -vE 'APP_ENV' dist/.env)";
+    local newAppEnv="APP_ENV=$1";
+
+    if [ "$1" = 'prod' ]; then
+        newEnv="$(grep -vE 'APP_CURRENT_VERSION|APP_ENV' dist/.env)";
+        local newVersion="$(awk -F '~' '{$NF=""; print $0}' dist/.env | xargs)";
+        echo "$newEnv" > dist/.env
+        echo "$newAppEnv" >> dist/.env
+        echo "$newVersion" >> dist/.env
+        return 0;
+    fi;
+
+    echo "$newEnv" > dist/.env
+    echo "$newAppEnv" >> dist/.env
+}
+
 if [[ "$1" == "get-prod" ]]; then
     getSRIFiles 'distProd' | awk -F ': ' '
       BEGIN { ORS = ""; print " { "}
@@ -150,6 +169,10 @@ fi;
 
 if [[ "$1" == "write-index" ]]; then
     bindIndexSRI "$2"
+fi;
+
+if [[ "$1" == "write-env" ]]; then
+    writeEnv "$2"
 fi;
 
 if [[ "$1" == "validate" ]]; then

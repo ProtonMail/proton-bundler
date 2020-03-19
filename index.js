@@ -9,7 +9,6 @@ const argv = require('minimist')(process.argv.slice(2), {
     string: ['appMode'],
     boolean: ['lint', 'git', 'only-git'],
     default: {
-        website: false,
         git: false,
         lint: true,
         fromCi: false,
@@ -17,7 +16,6 @@ const argv = require('minimist')(process.argv.slice(2), {
         remote: false,
         forceFetch: false,
         'only-git': false,
-        silentMessage: false,
         'default-branch': 'master'
     }
 });

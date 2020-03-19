@@ -26,8 +26,7 @@ const argv = require('minimist')(process.argv.slice(2), {
 const ENV_FILE = fs.existsSync('.env') ? '.env' : 'env/.env';
 require('dotenv').config({ path: ENV_FILE });
 
-const { debug, success, error } = require('./lib/helpers/log')('proton-bundler');
-const askDeploy = require('./lib/ask');
+const { success, error } = require('./lib/helpers/log')('proton-bundler');
 const { get: getConfig } = require('./lib/config');
 const getTasks = require('./lib/tasks/index');
 const remoteBuildProcesss = require('./lib/tasks/remote');
@@ -62,7 +61,6 @@ async function main() {
         collapse: false
     });
 
-    const { isDeployGit, isOnlyDeployGit, branch } = config;
     await tasks.run();
 
     const now = moment(Date.now());
@@ -70,10 +68,6 @@ async function main() {
     const time = total > 60 ? moment.utc(total * 1000).format('mm:ss') : `${total}s`;
 
     successMessage(time, config);
-
-    if ((isDeployGit || isOnlyDeployGit) && !argv.silentMessage) {
-        return askDeploy(branch, argv);
-    }
 }
 
 /*
@@ -86,19 +80,6 @@ async function main() {
 
     if (argv._.includes('flavor')) {
         return flavorProcess(argv);
-    }
-
-    if (argv._.includes('log-commits')) {
-        const parseEnv = ({ branch, website }) => {
-            if (website && /deploy-(a|b)$/.test(branch)) {
-                return 'deploy-prod';
-            }
-            return branch;
-        };
-
-        debug(argv, 'arguments');
-        const branchName = parseEnv(argv);
-        return askDeploy(branchName, argv);
     }
 
     if (argv._.includes('changelog')) {

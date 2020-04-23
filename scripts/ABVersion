@@ -16,6 +16,22 @@ const booleanAnswerCb = (defaultValue = 'y') => (answer) => {
 }
 
 /**
+ * Check if a file exist,
+ * @param  {String}  filePath              Path to a file
+ * @param  {Boolean} isFull                We already give a full file path
+ * @return {void}
+ */
+async function hasFile(file, isFull) {
+    const filePath = isFull ? file : path.join(process.cwd(), file);
+    try {
+        await fs.access(filePath, FS_CONSTANTS.F_OK | FS_CONSTANTS.W_OK);
+    } catch (e) {
+        throw new Error(`You must have the file [${path.basename(filePath)}] to be able to tag`);
+    }
+}
+
+
+/**
  * Validate user input
  *   type: type     A/B testing version
  *   type: version  Semver version
@@ -132,6 +148,8 @@ async function flowAB({ arg1, arg2: input }, version) {
 }
 
 async function main() {
+
+    await hasFile('package-lock.json');
 
     const isStandardVersion = await question('Do you want to create AB testing version [Yy/Nn default: n]:', booleanAnswerCb('n'));
 

@@ -8,7 +8,7 @@
   },
   "module": "lib.js",
   "scripts": {
-    "lint": "eslint lib index.js --ext .js --quiet --cache",
+    "lint": "eslint scripts/ABVersion lib index.js --ext .js --quiet --cache",
     "pretty": "prettier --write  $(find lib/ index.js -type f -name '*.js')",
     "test": "echo \"Error: no test specified\" && exit 1",
     "sync:lock": "npm run follow:lock && git add package-lock.json && git commit -m 'Sync package-lock.json' && git push && npm run unfollow:lock",

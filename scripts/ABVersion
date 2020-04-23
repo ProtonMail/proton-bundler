@@ -89,7 +89,7 @@ async function execCommand(cmd, successCb = identity) {
     }
 }
 async function validateCurrentBranch() {
-    const output = await execCommand(`git rev-parse --abbrev-ref HEAD`);
+    const output = await execCommand('git rev-parse --abbrev-ref HEAD');
     if (output === 'develop') {
         throw new Error('You must tag only from master. Merge develop inside master then tag');
     }
@@ -122,7 +122,7 @@ async function writeVersion(newVersion) {
         ].join(' && ')
     );
 
-    console.log(`[run] new version available`, newVersion);
+    console.log('[run] new version available', newVersion);
 }
 
 async function flowStandard(newVersion) {

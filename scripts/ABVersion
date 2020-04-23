@@ -162,6 +162,7 @@ async function main() {
         return flowAB({ arg1, arg2 }, version);
     }
 
+    // We can tag AB testing frm anybranch but not a standard tag which must be from master
     await validateCurrentBranch()
 
     const newVersion = `v${semver.inc(version, arg1)}`;
@@ -174,7 +175,6 @@ async function main() {
 }
 
 main().catch((e) => {
-    console.error(e);
     if (e.message !== 'STOP') {
         console.log('');
         console.error(`🔴 ${e.toString()}`);

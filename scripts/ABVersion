@@ -161,16 +161,16 @@ async function flowAB({ arg1, arg2: input }, version) {
 
 async function main() {
     await hasFile('package-lock.json');
+    const [arg1 = 'patch', arg2] = process.argv.slice(2);
 
-    const isStandardVersion = await question(
+    validInput('version', arg1);
+
+    const isStandardVersion = arg2 ? false : await question(
         'Do you want to create AB testing version [Yy/Nn default: n]:',
         booleanAnswerCb('n')
     );
 
     const { version } = require(path.join(process.cwd(), 'package.json'));
-    const [arg1 = 'patch', arg2] = process.argv.slice(2);
-
-    validInput('version', arg1);
 
     if (!isStandardVersion) {
         return flowAB({ arg1, arg2 }, version);

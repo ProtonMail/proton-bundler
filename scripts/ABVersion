@@ -13,7 +13,7 @@ const booleanAnswerCb = (defaultValue = 'y') => (answer) => {
     // default press enter = empty string
     const value = (answer.trim() || defaultValue).toLowerCase();
     return value === defaultValue;
-}
+};
 
 /**
  * Check if a file exist,
@@ -29,7 +29,6 @@ async function hasFile(file, isFull) {
         throw new Error(`You must have the file [${path.basename(filePath)}] to be able to tag`);
     }
 }
-
 
 /**
  * Validate user input
@@ -96,10 +95,15 @@ async function validateCurrentBranch() {
     }
 }
 
+/**
+ * Write a new version to package.json + lockfile (FS + GIT)
+ * @param  {String} newVersion new tag
+ * @return {void}
+ */
 async function writeVersion(newVersion) {
     const rawVersion = newVersion.replace('v', '');
 
-    for (const file of [ 'package.json', 'package-lock.json' ]) {
+    for (const file of ['package.json', 'package-lock.json']) {
         const filePath = path.join(process.cwd(), file);
         const buffer = (await fs.readFile(filePath)).toString();
         const pkg = JSON.parse(buffer);
@@ -108,25 +112,32 @@ async function writeVersion(newVersion) {
         console.log(`[run] write new version ${newVersion} to ${file}`);
     }
 
-    await execCommand([
-        'git add package.json package-lock.json',
-        `git commit -m '${rawVersion}'`,
-        'git push origin "$(git rev-parse --abbrev-ref HEAD)"'
-    ].join(' && '));
+    await execCommand(
+        [
+            'git add package.json package-lock.json',
+            `git commit -m '${rawVersion}'`,
+            'git push origin "$(git rev-parse --abbrev-ref HEAD)"',
+            `git tag ${newVersion}`,
+            `git push origin ${newVersion}`
+        ].join(' && ')
+    );
 
     console.log(`[run] new version available`, newVersion);
 }
 
 async function flowStandard(newVersion) {
     await writeVersion(newVersion);
+    process.exit(0);
 }
 
 async function flowAB({ arg1, arg2: input }, version) {
-    const arg2 = input || await question('Which version you want to create? [a/b/c default:a]:', (answer) => {
-        // default press enter = empty string
-        const value = answer.trim() || 'a';
-        return value;
-    })
+    const arg2 =
+        input ||
+        (await question('Which version you want to create? [a/b/c default:a]:', (answer) => {
+            // default press enter = empty string
+            const value = answer.trim() || 'a';
+            return value;
+        }));
 
     validInput('type', arg2);
 
@@ -144,17 +155,20 @@ async function flowAB({ arg1, arg2: input }, version) {
 
     console.log('[run] create new tag', newVersion);
 
-    return writeVersion(newVersion);
+    await writeVersion(newVersion);
+    process.exit(0);
 }
 
 async function main() {
-
     await hasFile('package-lock.json');
 
-    const isStandardVersion = await question('Do you want to create AB testing version [Yy/Nn default: n]:', booleanAnswerCb('n'));
+    const isStandardVersion = await question(
+        'Do you want to create AB testing version [Yy/Nn default: n]:',
+        booleanAnswerCb('n')
+    );
 
     const { version } = require(path.join(process.cwd(), 'package.json'));
-    const [ arg1 = 'patch', arg2 ] = process.argv.slice(2);
+    const [arg1 = 'patch', arg2] = process.argv.slice(2);
 
     validInput('version', arg1);
 
@@ -163,7 +177,7 @@ async function main() {
     }
 
     // We can tag AB testing frm anybranch but not a standard tag which must be from master
-    await validateCurrentBranch()
+    await validateCurrentBranch();
 
     const newVersion = `v${semver.inc(version, arg1)}`;
 
@@ -181,5 +195,4 @@ main().catch((e) => {
         process.exit(1);
         console.log('');
     }
-
 });

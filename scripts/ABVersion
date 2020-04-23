@@ -4,6 +4,7 @@ const util = require('util');
 const path = require('path');
 const readline = require('readline');
 const exec = util.promisify(require('child_process').exec);
+const { promises: fs, constants: FS_CONSTANTS } = require('fs');
 
 const semver = require('semver');
 
@@ -79,29 +80,41 @@ async function validateCurrentBranch() {
     }
 }
 
-async function flowStandard() {
-    const args = process.argv.slice(2).join(' ');
-    await exec(`npm version ${args} && echo 'OKAY'`);
+async function writeVersion(newVersion) {
+    const rawVersion = newVersion.replace('v', '');
 
-    return execCommand(`npm version ${args}`, () => console.log('[run] new tag available', newVersion))
+    for (const file of [ 'package.json', 'package-lock.json' ]) {
+        const filePath = path.join(process.cwd(), file);
+        const buffer = (await fs.readFile(filePath)).toString();
+        const pkg = JSON.parse(buffer);
+        pkg.version = rawVersion;
+        await fs.writeFile(filePath, JSON.stringify(pkg, null, 4));
+        console.log(`[run] write new version ${newVersion} to ${file}`);
+    }
 
+    await execCommand([
+        'git add package.json package-lock.json',
+        `git commit -m '${rawVersion}'`,
+        'git push origin "$(git rev-parse --abbrev-ref HEAD)"'
+    ].join(' && '));
+
+    console.log(`[run] new version available`, newVersion);
 }
 
-async function flowAB() {
-    const { version } = require(path.join(process.cwd(), 'package.json'));
-    const [
-        arg1 = 'patch',
-        arg2 = await question('Which version you want to create? [a/b/c default:a]:', (answer) => {
-            // default press enter = empty string
-            const value = answer.trim() || 'a';
-            return value;
-        })
-    ] = process.argv.slice(2);
+async function flowStandard(newVersion) {
+    await writeVersion(newVersion);
+}
 
-    validInput('version', arg1);
+async function flowAB({ arg1, arg2: input }, version) {
+    const arg2 = input || await question('Which version you want to create? [a/b/c default:a]:', (answer) => {
+        // default press enter = empty string
+        const value = answer.trim() || 'a';
+        return value;
+    })
+
     validInput('type', arg2);
 
-    const newVersion = `v${semver.inc(version, arg1)}-${arg2}`;
+    const newVersion = `${semver.inc(version, arg1)}+${arg2}`;
 
     if (!semver.valid(newVersion)) {
         throw new Error(`Invalid version ${newVersion}`);
@@ -115,27 +128,40 @@ async function flowAB() {
 
     console.log('[run] create new tag', newVersion);
 
-    return execCommand(`git tag ${newVersion} && git push origin ${newVersion}`, () => console.log('[run] new tag available', newVersion))
+    return writeVersion(newVersion);
 }
 
 async function main() {
 
-    const isStandardVersion = await question(`Do you want to create AB testing version [Yy/Nn default: n]:`, booleanAnswerCb('n'));
+    const isStandardVersion = await question('Do you want to create AB testing version [Yy/Nn default: n]:', booleanAnswerCb('n'));
+
+    const { version } = require(path.join(process.cwd(), 'package.json'));
+    const [ arg1 = 'patch', arg2 ] = process.argv.slice(2);
+
+    validInput('version', arg1);
 
     if (!isStandardVersion) {
-        return flowAB();
+        return flowAB({ arg1, arg2 }, version);
     }
 
     await validateCurrentBranch()
 
-    // return flowStandard();
+    const newVersion = `v${semver.inc(version, arg1)}`;
+
+    if (!semver.valid(newVersion)) {
+        throw new Error(`Invalid version ${newVersion}`);
+    }
+
+    return flowStandard(newVersion);
 }
 
 main().catch((e) => {
+    console.error(e);
     if (e.message !== 'STOP') {
         console.log('');
         console.error(`🔴 ${e.toString()}`);
         process.exit(1);
         console.log('');
     }
+
 });

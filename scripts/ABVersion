@@ -91,6 +91,16 @@ async function execCommand(cmd, successCb = identity) {
 async function validateCurrentBranch() {
     const output = await execCommand('git rev-parse --abbrev-ref HEAD');
     if (output === 'develop') {
+
+        await execCommand(
+            [
+                'git reset package.json package-lock.json',
+                'git checkout package.json',
+                'git checkout package-lock.json || true'
+            ].join(' && ')
+        );
+
+
         throw new Error('You must tag only from master. Merge develop inside master then tag');
     }
 }
@@ -141,7 +151,7 @@ async function flowAB({ arg1, arg2: input }, version) {
 
     validInput('type', arg2);
 
-    const newVersion = `${semver.inc(version, arg1)}+${arg2}`;
+    const newVersion = `${version}+${arg2}`;
 
     if (!semver.valid(newVersion)) {
         throw new Error(`Invalid version ${newVersion}`);
@@ -160,7 +170,10 @@ async function flowAB({ arg1, arg2: input }, version) {
 }
 
 async function main() {
+    // We can tag AB testing frm anybranch but not a standard tag which must be from master
+    await validateCurrentBranch();
     await hasFile('package-lock.json');
+
     const [arg1 = 'patch', arg2] = process.argv.slice(2);
 
     validInput('version', arg1);
@@ -176,16 +189,7 @@ async function main() {
         return flowAB({ arg1, arg2 }, version);
     }
 
-    // We can tag AB testing frm anybranch but not a standard tag which must be from master
-    await validateCurrentBranch();
-
-    const newVersion = `v${semver.inc(version, arg1)}`;
-
-    if (!semver.valid(newVersion)) {
-        throw new Error(`Invalid version ${newVersion}`);
-    }
-
-    return flowStandard(newVersion);
+    return flowStandard(version);
 }
 
 main().catch((e) => {

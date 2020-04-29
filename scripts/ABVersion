@@ -6,12 +6,8 @@
         + test if you try to tag from the branch develop, to stop you
         + test if you have the lockfile. No tag without it !!!
 
-    1. Add inside your package.json this config
-    "config": {
-      "git-tag-version": false
-    }
-    2. "version": "./node_modules/proton-bundler/scripts/ABVersion",
-    3. Add semver as a dependency
+    1. "version": "./node_modules/proton-bundler/scripts/ABVersion",
+    2. Add semver as a dependency
 
     Voilà, now you can use it.
  */
@@ -107,16 +103,6 @@ async function execCommand(cmd, successCb = identity) {
 async function validateCurrentBranch() {
     const output = await execCommand('git rev-parse --abbrev-ref HEAD');
     if (output === 'develop') {
-
-        await execCommand(
-            [
-                'git reset package.json package-lock.json',
-                'git checkout package.json',
-                'git checkout package-lock.json || true'
-            ].join(' && ')
-        );
-
-
         throw new Error('You must tag only from master. Merge develop inside master then tag');
     }
 }
@@ -142,11 +128,18 @@ async function writeVersion(newVersion) {
         [
             'git add package.json package-lock.json',
             `git commit -m '${rawVersion}'`,
-            'git push origin "$(git rev-parse --abbrev-ref HEAD)"',
-            `git tag ${newVersion}`,
+            'git push origin "$(git rev-parse --abbrev-ref HEAD)"'
+        ].join(' && ')
+    );
+    console.log('[run] create and push commit');
+
+    await execCommand(
+        [
+            `git tag ${newVersion} -m ${rawVersion}`,
             `git push origin ${newVersion}`
         ].join(' && ')
     );
+    console.log('[run] create a new tag and push the tag');
 
     console.log('[run] new version available', newVersion);
 }
@@ -156,7 +149,7 @@ async function flowStandard(newVersion) {
     process.exit(0);
 }
 
-async function flowAB({ arg2: input }, version) {
+async function flowAB({ arg1, arg2: input }, version) {
     const arg2 =
         input ||
         (await question('Which version you want to create? [a/b/c default:a]:', (answer) => {
@@ -167,7 +160,7 @@ async function flowAB({ arg2: input }, version) {
 
     validInput('type', arg2);
 
-    const newVersion = `${version}+${arg2}`;
+    const newVersion = `v${semver.inc(version, arg1)}+${arg2}`;
 
     if (!semver.valid(newVersion)) {
         throw new Error(`Invalid version ${newVersion}`);
@@ -185,13 +178,38 @@ async function flowAB({ arg2: input }, version) {
     process.exit(0);
 }
 
+async function validateCommand() {
+    const [ arg1 ] = Array.from(JSON.parse(process.env.npm_config_argv).original);
+
+    if (arg1 !== 'run') {
+
+        await execCommand(
+            [
+                'git reset package.json package-lock.json',
+                'git checkout package.json',
+                'git checkout package-lock.json || true'
+            ].join(' && ')
+        );
+        const error = new Error('You must run this command with [npm run version]');
+        error.about = [
+            'Why? (☞ﾟ∀ﾟ)☞',
+            'It is because [npm version] is impossible to extend, while via [npm run version] it works perfectly.',
+            '[npm version] always commit and there is no option to disable this behavior.',
+            'We want to ship only one command, not many keys inside the package.json.',
+            'The most simple fix is to use [npm run version] as it will not commit by itself',
+            'The config from npm gives use some keys: commit-hook/git-tag-version sadly, both are not able to solve this issue.'
+        ].join('\n');
+        throw error;
+    }
+}
+
 async function main() {
-    // We can tag AB testing frm anybranch but not a standard tag which must be from master
-    await validateCurrentBranch();
+
+    await validateCommand();
     await hasFile('package-lock.json');
+    await validateCurrentBranch(); // We don't want to tag from develop
 
     const [arg1 = 'patch', arg2] = process.argv.slice(2);
-
     validInput('version', arg1);
 
     const isStandardVersion = arg2 ? false : await question(
@@ -205,13 +223,21 @@ async function main() {
         return flowAB({ arg1, arg2 }, version);
     }
 
-    return flowStandard(version);
+
+    const newVersion = `v${semver.inc(version, arg1)}`;
+
+    if (!semver.valid(newVersion)) {
+        throw new Error(`Invalid version ${newVersion}`);
+    }
+
+    return flowStandard(newVersion);
 }
 
 main().catch((e) => {
     if (e.message !== 'STOP') {
         console.log('');
         console.error(`🔴 ${e.toString()}`);
+        e.about && console.log(`\n${e.about}\n\n`);
         process.exit(1);
         console.log('');
     }

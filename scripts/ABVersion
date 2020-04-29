@@ -140,7 +140,7 @@ async function flowStandard(newVersion) {
     process.exit(0);
 }
 
-async function flowAB({ arg1, arg2: input }, version) {
+async function flowAB({ arg2: input }, version) {
     const arg2 =
         input ||
         (await question('Which version you want to create? [a/b/c default:a]:', (answer) => {

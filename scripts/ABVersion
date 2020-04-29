@@ -1,5 +1,21 @@
 #!/usr/bin/env node
 
+/*
+    Command to replace default npm version, it provides the same API but
+    is able to create a A/B testing tag.
+        + test if you try to tag from the branch develop, to stop you
+        + test if you have the lockfile. No tag without it !!!
+
+    1. Add inside your package.json this config
+    "config": {
+      "git-tag-version": false
+    }
+    2. "version": "./node_modules/proton-bundler/scripts/ABVersion",
+    3. Add semver as a dependency
+
+    Voilà, now you can use it.
+ */
+
 const util = require('util');
 const path = require('path');
 const readline = require('readline');
